@@ -67,7 +67,7 @@ function parseGoalRow(row: any) {
 
 calculatorRouter.get("/saved", async (req, res, next) => {
   try {
-    const userId = (req as AuthedRequest).userId;
+    const userId = (req as unknown as AuthedRequest).userId;
 
     if (isSqlite) {
       await ensureSqliteGoalTable();
@@ -88,7 +88,7 @@ calculatorRouter.get("/saved", async (req, res, next) => {
 
 calculatorRouter.post("/run-and-save", async (req, res, next) => {
   try {
-    const userId = (req as AuthedRequest).userId;
+    const userId = (req as unknown as AuthedRequest).userId;
     const body = CalculatorRunSchema.parse(req.body);
 
     const canonical = canonicalJsonString(body.params);
@@ -159,7 +159,7 @@ calculatorRouter.post("/run-and-save", async (req, res, next) => {
 
 calculatorRouter.delete("/saved/:id", async (req, res, next) => {
   try {
-    const userId = (req as AuthedRequest).userId;
+    const userId = (req as unknown as AuthedRequest).userId;
     const id = String(req.params.id || "");
     if (!id) throw new HttpError(400, "Identificador invÃ¡lido.");
 

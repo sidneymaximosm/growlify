@@ -16,12 +16,12 @@ function getStripe() {
   if (!env.STRIPE_SECRET_KEY) {
     throw new HttpError(503, devHint("Cobrança indisponível: configure STRIPE_SECRET_KEY no apps/api/.env."));
   }
-  return new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: "2024-06-20" });
+  return new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: "2025-02-24.acacia" });
 }
 
 export async function createCheckoutSession(req: Request, res: Response, next: NextFunction) {
   try {
-    const userId = (req as AuthedRequest).userId;
+    const userId = (req as unknown as AuthedRequest).userId;
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new HttpError(401, "Sess\u00e3o expirada ou inv\u00e1lida. Entre novamente.");
     if (!env.STRIPE_PRICE_ID) {
@@ -65,7 +65,7 @@ export async function createCheckoutSession(req: Request, res: Response, next: N
 
 export async function createPortalSession(req: Request, res: Response, next: NextFunction) {
   try {
-    const userId = (req as AuthedRequest).userId;
+    const userId = (req as unknown as AuthedRequest).userId;
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new HttpError(401, "Sessão expirada ou inválida. Entre novamente.");
 

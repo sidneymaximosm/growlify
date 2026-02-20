@@ -57,10 +57,10 @@ app.use("/api/billing", requireAuth, billingRouter);
 
 app.use(errorMiddleware);
 
-const port = env.PORT;
-app.listen(port, () => {
-  // eslint-disable-next-line no-console
-  console.log(`API do Growlify online em http://localhost:${port}`);
+const port = Number(env.PORT) || 8080;
+
+app.listen(port, "0.0.0.0", () => {
+  console.log(`API do Growlify online na porta ${port}`);
 });
 
 // Encerramento seguro

@@ -32,7 +32,7 @@ const METHOD_LABEL: Record<string, string> = {
 
 reportsRouter.get("/summary", async (req, res, next) => {
   try {
-    const userId = (req as AuthedRequest).userId;
+    const userId = (req as unknown as AuthedRequest).userId;
     const q = SummaryQuery.parse(req.query);
 
     const now = new Date();
@@ -73,7 +73,7 @@ reportsRouter.get("/summary", async (req, res, next) => {
 
 reportsRouter.get("/export.csv", async (req, res, next) => {
   try {
-    const userId = (req as AuthedRequest).userId;
+    const userId = (req as unknown as AuthedRequest).userId;
     const q = SummaryQuery.parse(req.query);
     const now = new Date();
     const from = q.from ? new Date(String(q.from)) : monthStartUTC(now);

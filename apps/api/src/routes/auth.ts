@@ -201,7 +201,7 @@ authRouter.post("/forgot-password", async (req, res, next) => {
     }
 
     res.json(generic);
-  } catch (err) {
+  } catch (err: any) {
     // N\u00e3o permite que falhas internas (banco/SMTP) revelem informa\u00e7\u00f5es ou interrompam o fluxo.
     if (process.env.NODE_ENV !== "production") {
       // eslint-disable-next-line no-console

@@ -16,7 +16,7 @@ const CategorySchema = z.object({
 
 categoriesRouter.get("/", async (req, res, next) => {
   try {
-    const userId = (req as AuthedRequest).userId;
+    const userId = (req as unknown as AuthedRequest).userId;
     let items = await prisma.category.findMany({
       where: { userId },
       orderBy: { name: "asc" }
@@ -42,7 +42,7 @@ categoriesRouter.get("/", async (req, res, next) => {
 
 categoriesRouter.post("/", async (req, res, next) => {
   try {
-    const userId = (req as AuthedRequest).userId;
+    const userId = (req as unknown as AuthedRequest).userId;
     const data = CategorySchema.parse(req.body);
     const item = await prisma.category.create({ data: { ...data, userId } });
     res.status(201).json({ item });
@@ -53,7 +53,7 @@ categoriesRouter.post("/", async (req, res, next) => {
 
 categoriesRouter.put("/:id", async (req, res, next) => {
   try {
-    const userId = (req as AuthedRequest).userId;
+    const userId = (req as unknown as AuthedRequest).userId;
     const id = String(req.params.id);
     const data = CategorySchema.partial().parse(req.body);
 
@@ -69,7 +69,7 @@ categoriesRouter.put("/:id", async (req, res, next) => {
 
 categoriesRouter.delete("/:id", async (req, res, next) => {
   try {
-    const userId = (req as AuthedRequest).userId;
+    const userId = (req as unknown as AuthedRequest).userId;
     const id = String(req.params.id);
 
     const existing = await prisma.category.findFirst({ where: { id, userId } });

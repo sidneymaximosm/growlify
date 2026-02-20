@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "../db/prisma.js";
 import type { AuthedRequest } from "../http/authMiddleware.js";
 import { HttpError } from "../http/errors.js";
+import { includesInsensitive } from "../domain/search.js";
 
 export const transactionsRouter = Router();
 
@@ -26,12 +27,13 @@ const ListSchema = z.object({
 
 transactionsRouter.get("/", async (req, res, next) => {
   try {
-    const userId = (req as AuthedRequest).userId;
+    const userId = (req as unknown as AuthedRequest).userId;
     const q = ListSchema.parse(req.query);
     const from = q.from ? new Date(String(q.from)) : undefined;
     const to = q.to ? new Date(String(q.to)) : undefined;
+    const queryText = q.q ? String(q.q).trim() : "";
 
-    const items = await prisma.transaction.findMany({
+    let items = await prisma.transaction.findMany({
       where: {
         userId,
         ...(q.type ? { type: q.type } : {}),
@@ -44,18 +46,16 @@ transactionsRouter.get("/", async (req, res, next) => {
               }
             }
           : {}),
-        ...(q.q
-          ? {
-              OR: [
-                { description: { contains: q.q, mode: "insensitive" } },
-                { tag: { contains: q.q, mode: "insensitive" } }
-              ]
-            }
-          : {})
+        // Busca por texto (case-insensitive) aplicada via filtro em memória para manter consistência
+        // entre SQLite (sem `mode: "insensitive"`) e outros bancos.
       },
       orderBy: { date: "desc" },
       include: { category: true }
     });
+
+    if (queryText) {
+      items = items.filter((t) => includesInsensitive(t.description, queryText) || includesInsensitive(t.tag, queryText));
+    }
 
     res.json({ items });
   } catch (err) {
@@ -65,7 +65,7 @@ transactionsRouter.get("/", async (req, res, next) => {
 
 transactionsRouter.post("/", async (req, res, next) => {
   try {
-    const userId = (req as AuthedRequest).userId;
+    const userId = (req as unknown as AuthedRequest).userId;
     const data = TransactionSchema.parse(req.body);
 
     if (data.categoryId) {
@@ -94,7 +94,7 @@ transactionsRouter.post("/", async (req, res, next) => {
 
 transactionsRouter.put("/:id", async (req, res, next) => {
   try {
-    const userId = (req as AuthedRequest).userId;
+    const userId = (req as unknown as AuthedRequest).userId;
     const id = String(req.params.id);
     const data = TransactionSchema.partial().parse(req.body);
 
@@ -127,7 +127,7 @@ transactionsRouter.put("/:id", async (req, res, next) => {
 
 transactionsRouter.delete("/:id", async (req, res, next) => {
   try {
-    const userId = (req as AuthedRequest).userId;
+    const userId = (req as unknown as AuthedRequest).userId;
     const id = String(req.params.id);
 
     const existing = await prisma.transaction.findFirst({ where: { id, userId } });
@@ -139,4 +139,3 @@ transactionsRouter.delete("/:id", async (req, res, next) => {
     next(err);
   }
 });
-
