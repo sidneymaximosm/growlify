@@ -1,0 +1,26 @@
+node_modules
+.DS_Store
+dist
+build
+.expo
+.expo-shared
+.idea
+.vscode
+*.log
+coverage
+*.tsbuildinfo
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.turbo
+.env
+.env.*
+!.env.example
+
+# SQLite/Prisma (MVP local)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+apps/api/prisma/**/dev.db*

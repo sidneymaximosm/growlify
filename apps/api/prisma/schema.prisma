@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum SubscriptionStatus {
+  inactive
+  active
+  past_due
+  canceled
+}
+
+enum TransactionType {
+  income
+  expense
+}
+
+enum CategoryKind {
+  domestic
+  commercial
+}
+
+enum CategoryPriority {
+  essential
+  important
+  cuttable
+}
+
+enum TransactionMethod {
+  cash
+  card
+  pix
+  transfer
+  other
+}
+
+model User {
+  id                             String              @id @default(cuid())
+  name                           String
+  email                          String              @unique
+  passwordHash                   String
+  createdAt                      DateTime            @default(now())
+  updatedAt                      DateTime            @updatedAt
+
+  stripeCustomerId               String?
+  stripeSubscriptionId           String?
+  subscriptionStatus             SubscriptionStatus  @default(inactive)
+  subscriptionCurrentPeriodEnd   DateTime?
+
+  categories                     Category[]
+  transactions                   Transaction[]
+  goals                          Goal[]
+  resetPasswordTokens            ResetPasswordToken[]
+}
+
+model Category {
+  id                  String            @id @default(cuid())
+  userId              String
+  user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name                String
+  kind                CategoryKind
+  priority            CategoryPriority
+  monthlyBudgetCents  Int?
+
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  transactions        Transaction[]
+
+  @@index([userId])
+}
+
+model Transaction {
+  id            String            @id @default(cuid())
+  userId        String
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type          TransactionType
+  amountCents   Int
+  date          DateTime
+  description   String?
+  method        TransactionMethod
+  tag           String?
+
+  categoryId    String?
+  category      Category?         @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([userId, date])
+  @@index([userId, type])
+  @@index([userId, categoryId])
+}
+
+model Goal {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type       String
+  title      String?
+  paramsHash String
+  paramsJson Json
+  resultJson Json
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, type, paramsHash])
+  @@index([userId, type, updatedAt])
+}
+
+model ResetPasswordToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}

@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "Growlify",
+    "slug": "growlify",
+    "scheme": "growlify",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "splash": { "backgroundColor": "#0A2540" },
+    "assetBundlePatterns": ["**/*"],
+    "ios": { "supportsTablet": true },
+    "android": {},
+    "web": {},
+    "extra": {
+      "apiBaseUrl": ""
+    }
+  }
+}

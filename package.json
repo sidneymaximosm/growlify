@@ -1,0 +1,8 @@
+{
+  "name": "growlify",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ]
+}
+
