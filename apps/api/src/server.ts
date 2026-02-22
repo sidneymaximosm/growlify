@@ -52,6 +52,14 @@ app.use(
         return cb(null, true);
       }
 
+      // Fallback defensivo: permite os domínios do Vercel do Growlify mesmo se as variáveis
+      // de ambiente tiverem sido configuradas com nomes incorretos no provedor.
+      // Produção: https://growlify-omega.vercel.app
+      // Previews: https://growlify-<hash>.vercel.app
+      if (/^https:\/\/growlify-[a-z0-9-]+\.vercel\.app$/i.test(requestOrigin)) {
+        return cb(null, true);
+      }
+
       return cb(new Error("Origem não permitida"), false);
     },
     credentials: true,
