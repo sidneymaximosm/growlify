@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "start": "prisma db push --skip-generate && node dist/server.js",
+    "start": "node dist/server.js",
     "build": "prisma generate && tsc -p tsconfig.json",
     "test": "node --import tsx --test test/**/*.test.ts",
     "prisma:generate": "prisma generate",
