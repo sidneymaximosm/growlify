@@ -18,23 +18,47 @@ const app = express();
 app.use(
   cors({
     origin: (origin, cb) => {
-      // Permite chamadas sem Origin (curl, health checks)
       if (!origin) return cb(null, true);
-
-      // Alguns contextos (file://, webviews) usam Origin "null"
       if (origin === "null") return cb(null, true);
 
-      // Permite origens configuradas
-      if (origin === env.WEB_ORIGIN || origin === env.MOBILE_ORIGIN) return cb(null, true);
+      const normalize = (value: string) => {
+        const trimmed = value.trim();
+        const unquoted =
+          (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+          (trimmed.startsWith("'") && trimmed.endsWith("'"))
+            ? trimmed.slice(1, -1)
+            : trimmed;
+        const noTrailingSlash = unquoted.replace(/\/+$/, "");
+        try {
+          return new URL(noTrailingSlash).origin;
+        } catch {
+          return noTrailingSlash;
+        }
+      };
 
-      // Dev: permite localhost/127.0.0.1 em qualquer porta (Vite pode subir em 5173, 5174, etc.)
-      if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) return cb(null, true);
+      const allowed = new Set(
+        [env.WEB_ORIGIN, env.MOBILE_ORIGIN]
+          .flatMap((v) => String(v || "").split(",")) // permite lista separada por vírgula
+          .map((v) => v.trim())
+          .filter(Boolean)
+          .map(normalize)
+      );
+
+      const requestOrigin = normalize(origin);
+
+      if (allowed.has(requestOrigin)) return cb(null, true);
+
+      if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(requestOrigin)) {
+        return cb(null, true);
+      }
 
       return cb(new Error("Origem não permitida"), false);
     },
-    credentials: true
+    credentials: true,
+    optionsSuccessStatus: 204
   })
 );
+
 app.use(cookieParser());
 
 // Stripe webhook precisa do raw body (antes do JSON parser)
