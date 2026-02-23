@@ -2,11 +2,11 @@
   "name": "@growlify/web",
   "private": true,
   "type": "module",
-  "scripts": {
-    "dev": "vite --host 127.0.0.1 --port 5173",
-    "build": "tsc -p tsconfig.json && vite build",
-    "preview": "vite preview --host 127.0.0.1 --port 5173"
-  },
+ "scripts": {
+  "dev": "vite --host 0.0.0.0 --port 5173",
+  "build": "tsc -p tsconfig.json && vite build",
+  "preview": "vite preview --host 0.0.0.0 --port 5173"
+},
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
