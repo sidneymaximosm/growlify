@@ -35,7 +35,8 @@ function setSessionCookie(res: any, token: string) {
   const isProd = process.env.NODE_ENV === "production";
   res.cookie(env.COOKIE_NAME, token, {
     httpOnly: true,
-    sameSite: "lax",
+    // Em produção (Vercel -> Railway), é cross-site: precisa SameSite=None + Secure para o cookie ser enviado.
+    sameSite: isProd ? "none" : "lax",
     secure: isProd,
     path: "/",
     maxAge: 7 * 24 * 60 * 60 * 1000
@@ -155,7 +156,8 @@ authRouter.get("/me", async (req, res, next) => {
 });
 
 authRouter.post("/logout", async (_req, res) => {
-  res.clearCookie(env.COOKIE_NAME, { path: "/" });
+  const isProd = process.env.NODE_ENV === "production";
+  res.clearCookie(env.COOKIE_NAME, { path: "/", sameSite: isProd ? "none" : "lax", secure: isProd });
   res.json({ ok: true });
 });
 
