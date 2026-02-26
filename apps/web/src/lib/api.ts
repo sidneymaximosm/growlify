@@ -2,7 +2,12 @@ type ApiError = { message?: string };
 
 // Em dev (Vite), usamos proxy para evitar problemas de CORS/loopback (localhost vs 127.0.0.1).
 // Em produ\u00e7\u00e3o, defina VITE_API_BASE_URL.
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? "" : "http://127.0.0.1:8080")).replace(/\/+$/, "");
+const RAW_API_BASE = (import.meta.env.VITE_API_BASE_URL || "").trim();
+const API_BASE = (RAW_API_BASE || (import.meta.env.DEV ? "" : "")).replace(/\/+$/, "");
+const API_BASE_MISSING_MESSAGE =
+  !import.meta.env.DEV && !RAW_API_BASE
+    ? "Configura\u00e7\u00e3o ausente: defina VITE_API_BASE_URL no deploy (Vercel) para apontar para a API do Growlify."
+    : "";
 
 function isLocalhostHost(hostname: string) {
   return hostname === "localhost" || hostname === "127.0.0.1";
@@ -34,6 +39,11 @@ function networkErrorMessage() {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  if (API_BASE_MISSING_MESSAGE) {
+    const err: any = new Error(API_BASE_MISSING_MESSAGE);
+    err.status = 0;
+    throw err;
+  }
   const url = `${API_BASE}${path}`;
   let res: Response;
   try {

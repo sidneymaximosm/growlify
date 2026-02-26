@@ -50,6 +50,12 @@ npm run dev
 
 A Web sobe em `http://localhost:5173`.
 
+### Deploy (Vercel)
+No projeto do Vercel (Root Directory: `apps/web`), configure a vari\u00e1vel:
+- `VITE_API_BASE_URL=https://growlify-api-production.up.railway.app`
+
+Sem isso, o frontend n\u00e3o consegue acessar a API em produ\u00e7\u00e3o.
+
 ### 3) Mobile (Expo)
 ```bash
 cd apps/mobile
