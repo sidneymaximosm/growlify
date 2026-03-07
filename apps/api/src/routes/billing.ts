@@ -9,12 +9,12 @@ import { HttpError } from "../http/errors.js";
 export const billingRouter = Router();
 
 function devHint(message: string) {
-  return process.env.NODE_ENV === "production" ? "Cobrança indisponível no momento." : message;
+  return process.env.NODE_ENV === "production" ? "CobranÃ§a indisponÃ­vel no momento." : message;
 }
 
 function getStripe() {
   if (!env.STRIPE_SECRET_KEY) {
-    throw new HttpError(503, devHint("Cobrança indisponível: configure STRIPE_SECRET_KEY no apps/api/.env."));
+    throw new HttpError(503, devHint("CobranÃ§a indisponÃ­vel: configure STRIPE_SECRET_KEY no apps/api/.env."));
   }
   return new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: "2025-02-24.acacia" });
 }
@@ -27,7 +27,7 @@ export async function createCheckoutSession(req: Request, res: Response, next: N
     if (!env.STRIPE_PRICE_ID) {
       throw new HttpError(
         503,
-        devHint("Cobrança indisponível: configure STRIPE_PRICE_ID no apps/api/.env (Price mensal BRL R$ 27,90).")
+        devHint("CobranÃ§a indisponÃ­vel: configure STRIPE_PRICE_ID no apps/api/.env (Price mensal BRL R$ 27,90).")
       );
     }
 
@@ -47,43 +47,73 @@ export async function createCheckoutSession(req: Request, res: Response, next: N
       customer: customerId,
       currency: "brl",
       line_items: [{ price: env.STRIPE_PRICE_ID, quantity: 1 }],
-      // Teste gratuito: 7 dias com cartão obrigatório. Se cancelar antes, não há cobrança.
+      // Teste gratuito: 7 dias com cartÃ£o obrigatÃ³rio. Se cancelar antes, nÃ£o hÃ¡ cobranÃ§a.
       payment_method_collection: "always",
       subscription_data: {
         trial_period_days: 7
       },
-      success_url: `${baseUrl}/inicio?pagamento=sucesso`,
-      cancel_url: `${baseUrl}/perfil?pagamento=cancelado`,
+      success_url: `${baseUrl}/#/inicio?pagamento=sucesso`,
+      cancel_url: `${baseUrl}/#/perfil?pagamento=cancelado`,
       allow_promotion_codes: false
     });
 
     res.json({ url: session.url });
   } catch (err) {
+    const e = err as any;
+
+    // Erros do Stripe normalmente indicam configuração inválida (chave/price em modos diferentes)
+    // ou falha temporária. Evitamos retornar 500 genérico.
+    try {
+      const stripeType = typeof e?.type === "string" ? e.type : "";
+      const stripeMsg = String(e?.raw?.message || e?.message || "").trim();
+      if (stripeType && stripeMsg) {
+        // eslint-disable-next-line no-console
+        console.error("[stripe]", { type: stripeType, code: e?.raw?.code, message: stripeMsg });
+        return next(new HttpError(503, devHint(`Cobrança indisponível: ${stripeMsg}`)));
+      }
+    } catch {
+      // ignore
+    }
+
     next(err);
-  }
-}
+  }}
 
 export async function createPortalSession(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = (req as unknown as AuthedRequest).userId;
     const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new HttpError(401, "Sessão expirada ou inválida. Entre novamente.");
+    if (!user) throw new HttpError(401, "SessÃ£o expirada ou invÃ¡lida. Entre novamente.");
 
     const stripe = getStripe();
     const customerId = user.stripeCustomerId;
-    if (!customerId) throw new HttpError(409, "Assinatura ainda não iniciada.");
+    if (!customerId) throw new HttpError(409, "Assinatura ainda nÃ£o iniciada.");
 
     const baseUrl = env.PUBLIC_APP_URL.replace(/\/+$/, "");
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${baseUrl}/perfil`
+      return_url: `${baseUrl}/#/perfil`
     });
 
     res.json({ url: session.url });
   } catch (err) {
+    const e = err as any;
+
+    // Erros do Stripe normalmente indicam configuração inválida (chave/price em modos diferentes)
+    // ou falha temporária. Evitamos retornar 500 genérico.
+    try {
+      const stripeType = typeof e?.type === "string" ? e.type : "";
+      const stripeMsg = String(e?.raw?.message || e?.message || "").trim();
+      if (stripeType && stripeMsg) {
+        // eslint-disable-next-line no-console
+        console.error("[stripe]", { type: stripeType, code: e?.raw?.code, message: stripeMsg });
+        return next(new HttpError(503, devHint(`Cobrança indisponível: ${stripeMsg}`)));
+      }
+    } catch {
+      // ignore
+    }
+
     next(err);
-  }
-}
+  }}
 
 export async function stripeWebhook(req: Request, res: Response, next: NextFunction) {
   try {
@@ -135,10 +165,26 @@ export async function stripeWebhook(req: Request, res: Response, next: NextFunct
 
     res.json({ received: true });
   } catch (err) {
+    const e = err as any;
+
+    // Erros do Stripe normalmente indicam configuração inválida (chave/price em modos diferentes)
+    // ou falha temporária. Evitamos retornar 500 genérico.
+    try {
+      const stripeType = typeof e?.type === "string" ? e.type : "";
+      const stripeMsg = String(e?.raw?.message || e?.message || "").trim();
+      if (stripeType && stripeMsg) {
+        // eslint-disable-next-line no-console
+        console.error("[stripe]", { type: stripeType, code: e?.raw?.code, message: stripeMsg });
+        return next(new HttpError(503, devHint(`Cobrança indisponível: ${stripeMsg}`)));
+      }
+    } catch {
+      // ignore
+    }
+
     next(err);
-  }
-}
+  }}
 
 billingRouter.post("/checkout-session", createCheckoutSession);
 billingRouter.post("/portal-session", createPortalSession);
 billingRouter.post("/webhook", stripeWebhook);
+
