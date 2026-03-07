@@ -29,10 +29,27 @@ export function errorMiddleware(err: any, _req: Request, res: Response, _next: N
     console.error(err);
   }
 
-  const message =
-    status === 500 || status === 503
-      ? "Servi\u00e7o indispon\u00edvel no momento. Tente novamente."
-      : String(err?.message || "Falha ao processar a solicita\u00e7\u00e3o.");
+  const isProd = process.env.NODE_ENV === "production";
+  const explicit = String(err?.message || "");
+  const generic = "Serviço indisponível no momento. Tente novamente.";
+
+  const message = (() => {
+    if (status === 500) return generic;
+
+    // Em 503, preferimos não expor detalhes técnicos em produção.
+    // Se o erro já veio com uma mensagem amigável (ex.: cobrança indisponível), preservamos.
+    if (status === 503) {
+      if (!isProd && explicit) return explicit;
+
+      const looksTechnical =
+        /configure|apps\/api\/\.env|STRIPE_|DATABASE_URL|JWT_SECRET|stack|prisma/i.test(explicit);
+
+      if (explicit && !looksTechnical) return explicit;
+      return generic;
+    }
+
+    return String(err?.message || "Falha ao processar a solicitação.");
+  })();
 
   res.status(status).json({ message });
 }

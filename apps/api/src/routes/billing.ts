@@ -52,8 +52,8 @@ export async function createCheckoutSession(req: Request, res: Response, next: N
       subscription_data: {
         trial_period_days: 7
       },
-      success_url: `${baseUrl}/inicio?pagamento=sucesso`,
-      cancel_url: `${baseUrl}/perfil?pagamento=cancelado`,
+      success_url: `${baseUrl}/#/inicio?pagamento=sucesso`,
+      cancel_url: `${baseUrl}/#/perfil?pagamento=cancelado`,
       allow_promotion_codes: false
     });
 
@@ -76,7 +76,7 @@ export async function createPortalSession(req: Request, res: Response, next: Nex
     const baseUrl = env.PUBLIC_APP_URL.replace(/\/+$/, "");
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${baseUrl}/perfil`
+      return_url: `${baseUrl}/#/perfil`
     });
 
     res.json({ url: session.url });
@@ -142,3 +142,4 @@ export async function stripeWebhook(req: Request, res: Response, next: NextFunct
 billingRouter.post("/checkout-session", createCheckoutSession);
 billingRouter.post("/portal-session", createPortalSession);
 billingRouter.post("/webhook", stripeWebhook);
+
