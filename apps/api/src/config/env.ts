@@ -28,14 +28,20 @@ const envFirst = (...keys: string[]) => {
 
 // Compatibiliza nomes de variáveis do provedor (Railway) com os nomes esperados no código.
 if (!process.env.DATABASE_URL) process.env.DATABASE_URL = envFirst("URL_DO_BANCO_DE_DADOS");
+
 if (!process.env.COOKIE_NAME)
   process.env.COOKIE_NAME = envFirst("NOME_DO_COOKIE") ?? "growlify_session";
+
 if (!process.env.WEB_ORIGIN)
   process.env.WEB_ORIGIN = envFirst("ORIGEM_WEB") ?? "http://localhost:5173";
+
 if (!process.env.PUBLIC_APP_URL)
   process.env.PUBLIC_APP_URL =
     envFirst("URL_DO_APLICATIVO_PUBLICO", "URL_do_aplicativo_público") ??
     "http://localhost:5173";
+
+if (!process.env.STRIPE_PRICE_ID)
+  process.env.STRIPE_PRICE_ID = envFirst("ID_PRECO_STRIPE");
 
 // Resolve DATABASE_URL relativo para absoluto.
 const rawDbUrl = process.env.DATABASE_URL;
