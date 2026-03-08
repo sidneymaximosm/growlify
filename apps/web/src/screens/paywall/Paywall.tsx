@@ -1,11 +1,49 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
 import { useToast } from "../../ui/Toast";
 
 export function Paywall() {
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search || "");
+    if (params.get("pagamento") !== "sucesso") return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        setBusy(true);
+        await api.billing.sync();
+        const me = await api.auth.me();
+        if (cancelled) return;
+
+        if (me?.user?.subscription_status === "active") {
+          navigate("/inicio", { replace: true });
+          return;
+        }
+
+        toast({
+          title: "Assinatura",
+          description:
+            "O pagamento foi confirmado, mas a assinatura ainda está em atualização. Aguarde alguns segundos e atualize a página."
+        });
+      } catch (err: any) {
+        if (cancelled) return;
+        toast({ title: "Assinatura", description: err?.message || "Serviço indisponível no momento. Tente novamente." });
+      } finally {
+        if (!cancelled) setBusy(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [location.search, navigate, toast]);
+
 
   async function subscribe() {
     try {

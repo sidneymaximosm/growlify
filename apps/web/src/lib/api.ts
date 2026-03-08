@@ -132,7 +132,8 @@ export const api = {
   billing: {
     checkoutSession: () =>
       request<{ url: string }>("/api/billing/checkout-session", { method: "POST", body: JSON.stringify({}) }),
-    portalSession: () => request<{ url: string }>("/api/billing/portal-session", { method: "POST", body: JSON.stringify({}) })
+    portalSession: () => request<{ url: string }>("/api/billing/portal-session", { method: "POST", body: JSON.stringify({}) }),
+    sync: () => request<{ ok: true; updated: boolean; status?: string }>("/api/billing/sync", { method: "POST", body: JSON.stringify({}) })
   },
   categories: {
     list: () => request<{ items: any[] }>("/api/categories"),

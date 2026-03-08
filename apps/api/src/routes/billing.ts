@@ -52,7 +52,9 @@ export async function createCheckoutSession(req: Request, res: Response, next: N
       subscription_data: {
         trial_period_days: 7
       },
-      success_url: `${baseUrl}/#/inicio?pagamento=sucesso`,
+      // Importante: o status pode depender de webhook (trialing/active). Ao voltar do Checkout,
+      // caímos no Paywall com um parâmetro para disparar sincronização e liberar o acesso.
+      success_url: `${baseUrl}/#/paywall?pagamento=sucesso`,
       cancel_url: `${baseUrl}/#/perfil?pagamento=cancelado`,
       allow_promotion_codes: false
     });
@@ -184,7 +186,50 @@ export async function stripeWebhook(req: Request, res: Response, next: NextFunct
     next(err);
   }}
 
+
+export async function syncSubscription(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = (req as unknown as AuthedRequest).userId;
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new HttpError(401, "Sessão expirada ou inválida. Entre novamente.");
+    if (!user.stripeCustomerId) throw new HttpError(409, "Assinatura ainda não iniciada.");
+
+    const stripe = getStripe();
+    const subs = await stripe.subscriptions.list({ customer: user.stripeCustomerId, status: "all", limit: 10 });
+    const latest = subs.data.slice().sort((a, b) => (b.created ?? 0) - (a.created ?? 0))[0];
+    if (!latest) return res.json({ ok: true, updated: false });
+
+    const statusMap: Record<string, "active" | "past_due" | "canceled" | "inactive"> = {
+      active: "active",
+      trialing: "active",
+      past_due: "past_due",
+      canceled: "canceled",
+      unpaid: "past_due",
+      incomplete: "inactive",
+      incomplete_expired: "inactive",
+      paused: "inactive"
+    };
+
+    const mapped = statusMap[latest.status] ?? "inactive";
+    const currentPeriodEnd = latest.current_period_end ? new Date(latest.current_period_end * 1000) : null;
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        stripeSubscriptionId: latest.id,
+        subscriptionStatus: mapped,
+        subscriptionCurrentPeriodEnd: currentPeriodEnd
+      }
+    });
+
+    res.json({ ok: true, updated: true, status: mapped });
+  } catch (err) {
+    next(err);
+  }
+}
+
 billingRouter.post("/checkout-session", createCheckoutSession);
 billingRouter.post("/portal-session", createPortalSession);
 billingRouter.post("/webhook", stripeWebhook);
+billingRouter.post("/sync", syncSubscription);
 
