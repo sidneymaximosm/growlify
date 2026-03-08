@@ -13,8 +13,8 @@ type Category = {
   monthlyBudgetCents?: number | null;
 };
 
-const KIND_LABEL: Record<string, string> = { domestic: "Doméstico", commercial: "Comercial" };
-const PRIORITY_LABEL: Record<string, string> = { essential: "Essencial", important: "Importante", cuttable: "Cortável" };
+const KIND_LABEL: Record<string, string> = { domestic: "DomÃ©stico", commercial: "Comercial" };
+const PRIORITY_LABEL: Record<string, string> = { essential: "Essencial", important: "Importante", cuttable: "CortÃ¡vel" };
 
 function SubscriptionBadge(props: { status: string }) {
   if (props.status === "active") return <span className="badge badgeGreen">Assinatura ativa</span>;
@@ -38,12 +38,12 @@ function CategoryForm(props: { initial?: Partial<Category>; onCancel: () => void
       <div className="grid2">
         <div>
           <div className="label">Nome</div>
-          <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Alimentação" />
+          <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: AlimentaÃ§Ã£o" />
         </div>
         <div>
           <div className="label">Tipo</div>
           <select className="select" value={kind} onChange={(e) => setKind(e.target.value as any)}>
-            <option value="domestic">Doméstico</option>
+            <option value="domestic">DomÃ©stico</option>
             <option value="commercial">Comercial</option>
           </select>
         </div>
@@ -52,11 +52,11 @@ function CategoryForm(props: { initial?: Partial<Category>; onCancel: () => void
           <select className="select" value={priority} onChange={(e) => setPriority(e.target.value as any)}>
             <option value="essential">Essencial</option>
             <option value="important">Importante</option>
-            <option value="cuttable">Cortável</option>
+            <option value="cuttable">CortÃ¡vel</option>
           </select>
         </div>
         <div>
-          <div className="label">Orçamento mensal (opcional)</div>
+          <div className="label">OrÃ§amento mensal (opcional)</div>
           <input className="input" value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="R$ 0,00" inputMode="decimal" />
         </div>
       </div>
@@ -101,7 +101,7 @@ export function Perfil() {
       const res = await api.categories.list();
       setCategories(res.items || []);
     } catch (e: any) {
-      toast({ title: "Perfil", description: e?.message || "Serviço indisponível no momento. Tente novamente." });
+      toast({ title: "Perfil", description: e?.message || "ServiÃ§o indisponÃ­vel no momento. Tente novamente." });
     } finally {
       setLoadingCats(false);
     }
@@ -117,7 +117,7 @@ export function Perfil() {
       const res = await api.billing.portalSession();
       window.location.href = res.url;
     } catch (e: any) {
-      toast({ title: "Assinatura", description: e?.message || "Serviço indisponível no momento. Tente novamente." });
+      toast({ title: "Assinatura", description: e?.message || "ServiÃ§o indisponÃ­vel no momento. Tente novamente." });
     } finally {
       setBillingBusy(false);
     }
@@ -134,7 +134,7 @@ export function Perfil() {
       <div className="topbar">
         <div>
           <div className="h1">Perfil</div>
-          <div className="muted" style={{ marginTop: 6 }}>Conta, preferências e categorias.</div>
+          <div className="muted" style={{ marginTop: 6 }}>Conta, preferÃªncias e categorias.</div>
         </div>
         <button
           className="btn"
@@ -143,7 +143,7 @@ export function Perfil() {
             try {
               await logout();
             } finally {
-              navigate("/entrar", { replace: true });
+              window.location.replace("/#/entrar");
             }
           }}
         >
@@ -172,14 +172,14 @@ export function Perfil() {
               </div>
               <div style={{ textAlign: "right" }}>
                 <div className="label">Plano Growlify</div>
-                <div className="text2" style={{ marginTop: 6 }}>R$ 27,90 / mês</div>
-                <div className="muted" style={{ marginTop: 4, fontSize: 12 }}>Teste gratuito por 7 dias com cartão obrigatório.</div>
-                <div className="muted" style={{ marginTop: 4, fontSize: 12 }}>Cancele antes do fim do teste sem cobranças. Sem fidelidade.</div>
+                <div className="text2" style={{ marginTop: 6 }}>R$ 27,90 / mÃªs</div>
+                <div className="muted" style={{ marginTop: 4, fontSize: 12 }}>Teste gratuito por 7 dias com cartÃ£o obrigatÃ³rio.</div>
+                <div className="muted" style={{ marginTop: 4, fontSize: 12 }}>Cancele antes do fim do teste sem cobranÃ§as. Sem fidelidade.</div>
               </div>
             </div>
             <div className="row" style={{ marginTop: 12, justifyContent: "flex-end", flexWrap: "wrap" }}>
               <button className="btn" type="button" disabled={billingBusy} onClick={abrirPortalAssinatura}>
-                {billingBusy ? "Aguarde…" : "Gerenciar assinatura"}
+                {billingBusy ? "Aguardeâ€¦" : "Gerenciar assinatura"}
               </button>
             </div>
           </div>
@@ -188,12 +188,12 @@ export function Perfil() {
         <div className="card">
           <div className="h2">Categorias & prioridades</div>
           <div className="muted" style={{ marginTop: 6, fontSize: 13 }}>
-            Categorias estruturam lançamentos, orçamento mensal (opcional) e leitura de prioridades.
+            Categorias estruturam lanÃ§amentos, orÃ§amento mensal (opcional) e leitura de prioridades.
           </div>
 
           <div className="row" style={{ justifyContent: "space-between", marginTop: 12 }}>
             <div className="muted" style={{ fontSize: 13 }}>
-              {totalsBudget.count} com orçamento • Total {formatBRL(totalsBudget.sum)}
+              {totalsBudget.count} com orÃ§amento â€¢ Total {formatBRL(totalsBudget.sum)}
             </div>
             <button
               className="btn btnPrimary"
@@ -208,7 +208,7 @@ export function Perfil() {
           </div>
 
           {loadingCats ? (
-            <div className="muted" style={{ marginTop: 12 }}>Carregando…</div>
+            <div className="muted" style={{ marginTop: 12 }}>Carregandoâ€¦</div>
           ) : categories.length === 0 ? (
             <div className="muted" style={{ marginTop: 12 }}>Nenhuma categoria cadastrada.</div>
           ) : (
@@ -219,8 +219,8 @@ export function Perfil() {
                     <div>
                       <div style={{ fontWeight: 900 }}>{c.name}</div>
                       <div className="muted" style={{ marginTop: 6, fontSize: 13 }}>
-                        {KIND_LABEL[c.kind]} • {PRIORITY_LABEL[c.priority]}
-                        {c.monthlyBudgetCents ? ` • Orçamento ${formatBRL(c.monthlyBudgetCents)}` : ""}
+                        {KIND_LABEL[c.kind]} â€¢ {PRIORITY_LABEL[c.priority]}
+                        {c.monthlyBudgetCents ? ` â€¢ OrÃ§amento ${formatBRL(c.monthlyBudgetCents)}` : ""}
                       </div>
                     </div>
                     <div className="row">
@@ -238,13 +238,13 @@ export function Perfil() {
                         className="btn btnDanger"
                         type="button"
                         onClick={async () => {
-                          if (!confirm("Excluir categoria? Esta ação remove a categoria, mas não apaga lançamentos existentes.")) return;
+                          if (!confirm("Excluir categoria? Esta aÃ§Ã£o remove a categoria, mas nÃ£o apaga lanÃ§amentos existentes.")) return;
                           try {
                             await api.categories.remove(c.id);
-                            toast({ title: "Categorias", description: "Categoria excluída com sucesso." });
+                            toast({ title: "Categorias", description: "Categoria excluÃ­da com sucesso." });
                             await loadCats();
                           } catch (e: any) {
-                            toast({ title: "Categorias", description: e?.message || "Serviço indisponível no momento. Tente novamente." });
+                            toast({ title: "Categorias", description: e?.message || "ServiÃ§o indisponÃ­vel no momento. Tente novamente." });
                           }
                         }}
                       >
@@ -280,7 +280,7 @@ export function Perfil() {
               setEditing(null);
               await loadCats();
             } catch (e: any) {
-              toast({ title: "Categorias", description: e?.message || "Serviço indisponível no momento. Tente novamente." });
+              toast({ title: "Categorias", description: e?.message || "ServiÃ§o indisponÃ­vel no momento. Tente novamente." });
             }
           }}
         />

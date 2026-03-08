@@ -1,18 +1,70 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "apps/web/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
+    "version":  2,
+    "builds":  [
+                   {
+                       "config":  {
+                                      "distDir":  "dist"
+                                  },
+                       "use":  "@vercel/static-build",
+                       "src":  "apps/web/package.json"
+                   }
+               ],
+    "redirects":  [
+                      {
+                          "destination":  "/#/entrar",
+                          "permanent":  false,
+                          "source":  "/entrar"
+                      },
+                      {
+                          "destination":  "/#/criar-conta",
+                          "permanent":  false,
+                          "source":  "/criar-conta"
+                      },
+                      {
+                          "destination":  "/#/forgot-password",
+                          "permanent":  false,
+                          "source":  "/forgot-password"
+                      },
+                      {
+                          "destination":  "/#/reset-password",
+                          "permanent":  false,
+                          "source":  "/reset-password"
+                      },
+                      {
+                          "destination":  "/#/termos",
+                          "permanent":  false,
+                          "source":  "/termos"
+                      },
+                      {
+                          "destination":  "/#/inicio",
+                          "permanent":  false,
+                          "source":  "/inicio"
+                      },
+                      {
+                          "destination":  "/#/lancamentos",
+                          "permanent":  false,
+                          "source":  "/lancamentos"
+                      },
+                      {
+                          "destination":  "/#/diagnostico",
+                          "permanent":  false,
+                          "source":  "/diagnostico"
+                      },
+                      {
+                          "destination":  "/#/relatorios",
+                          "permanent":  false,
+                          "source":  "/relatorios"
+                      },
+                      {
+                          "destination":  "/#/perfil",
+                          "permanent":  false,
+                          "source":  "/perfil"
+                      }
+                  ],
+    "rewrites":  [
+                     {
+                         "destination":  "/index.html",
+                         "source":  "/(.*)"
+                     }
+                 ]
 }
