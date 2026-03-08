@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
 import { formatBRL, toCentsFromBRL } from "../../lib/format";
 import { useAuth } from "../../state/auth";
@@ -86,6 +87,7 @@ function CategoryForm(props: { initial?: Partial<Category>; onCancel: () => void
 export function Perfil() {
   const { me, logout } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCats, setLoadingCats] = useState(true);
@@ -138,8 +140,11 @@ export function Perfil() {
           className="btn"
           type="button"
           onClick={async () => {
-            await logout();
-            window.location.href = "/entrar";
+            try {
+              await logout();
+            } finally {
+              navigate("/entrar", { replace: true });
+            }
           }}
         >
           Sair
