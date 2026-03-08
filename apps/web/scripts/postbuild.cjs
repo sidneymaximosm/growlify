@@ -14,4 +14,27 @@ for (const name of ['404.html', '200.html']) {
   fs.copyFileSync(indexPath, outPath);
 }
 
-console.log('[postbuild] Fallback SPA gerado: dist/404.html e dist/200.html');
+// Alguns hosts (ou configurações) não fazem rewrite para SPA em rotas "limpas".
+// Para evitar 404 em refresh/deep-link, criamos `/<rota>/index.html` apontando para o mesmo `index.html`.
+const routes = [
+  'entrar',
+  'criar-conta',
+  'forgot-password',
+  'reset-password',
+  'termos',
+  'inicio',
+  'lancamentos',
+  'diagnostico',
+  'relatorios',
+  'perfil',
+];
+
+for (const route of routes) {
+  const routeDir = path.join(distDir, route);
+  fs.mkdirSync(routeDir, { recursive: true });
+  fs.copyFileSync(indexPath, path.join(routeDir, 'index.html'));
+}
+
+console.log(
+  '[postbuild] Fallback SPA gerado: dist/404.html, dist/200.html e páginas para rotas (deep-link).',
+);
